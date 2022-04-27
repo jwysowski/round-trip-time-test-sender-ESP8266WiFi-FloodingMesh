@@ -17,7 +17,8 @@ uint8_t espnow_hash_key[16] = { 0xEF, 0x44, 0x33, 0x0C, 0x33, 0x44, 0xFE, 0x44, 
 
 FloodingMesh mesh = FloodingMesh(received_callback, FPSTR(password), espnow_encrypted_connection_key,
 								espnow_hash_key, FPSTR(ssid), MeshTypeConversionFunctions::uint64ToString(ESP.getChipId()), true);
-String chip_id;                                
+String chip_id;
+bool received = false;                                
 void setup() {
 	WiFi.persistent(false);
 	chip_id = String(ESP.getChipId());
@@ -28,9 +29,14 @@ void setup() {
 
 void loop() {
 	floodingMeshDelay(1);
+
+	if (received) {
+		mesh.broadcast(chip_id + String('\t') + String("Round trip test"));
+		received = false;	
+	}
 }
 
 bool received_callback(String &msg, FloodingMesh &meshInstance) {
-    mesh.broadcast(chip_id + String('\t') + msg);
+	received = true;
     return true;
 }
